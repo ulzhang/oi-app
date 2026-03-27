@@ -9,8 +9,8 @@
 - [x] Dark theme UI
 
 ## Features
-- [ ] **Battery & thermal monitoring** — track battery drain rate and thermal state while PiP is active. Show in-app stats (e.g. "5% used in 15 min"). Warn user or auto-stop if device is overheating. Use `ProcessInfo.thermalState` and `UIDevice.batteryLevel`.
-- [ ] **Auto-timeout** — actually wire up the settings timeout value to stop PiP after the configured duration
+- [x] **Battery & thermal monitoring** — battery %, thermal state dot, drain rate, auto-stop on critical thermal
+- [x] **Auto-timeout** — wired up to settings value, countdown display on main screen
 - [ ] **Siri Shortcuts** — "Hey Siri, start Oi" to launch PiP hands-free
 - [ ] **Lock Screen widget** — quick-launch button and "Oi is active" status
 

@@ -70,12 +70,14 @@ class PipCameraDelegate: NSObject,
   ) {
     pipDidStart = true
     module?.sendEvent("onPipStateChanged", ["state": "active"])
+    module?.startBatteryMonitoring()
   }
 
   func pictureInPictureControllerDidStopPictureInPicture(
     _ controller: AVPictureInPictureController
   ) {
     pipDidStart = false
+    module?.stopBatteryMonitoring()
     module?.sendEvent("onPipStateChanged", ["state": "stopped"])
   }
 
@@ -100,11 +102,12 @@ public class OiCameraPipModule: Module {
   /// Hidden container view to host the sample buffer layer in the view hierarchy
   private var containerView: UIView?
   private var pipPossibleObservation: NSKeyValueObservation?
+  private var batteryMonitoringTimer: Timer?
 
   public func definition() -> ModuleDefinition {
     Name("OiCameraPip")
 
-    Events("onPipStateChanged")
+    Events("onPipStateChanged", "onDeviceStatusChanged")
 
     OnCreate {
       self.delegate.module = self
@@ -271,6 +274,7 @@ public class OiCameraPipModule: Module {
 
     Function("stopCamera") { [weak self] in
       guard let self = self else { return }
+      self.stopBatteryMonitoring()
       self.sessionQueue.async {
         self.captureSession?.stopRunning()
         self.captureSession = nil
@@ -287,6 +291,87 @@ public class OiCameraPipModule: Module {
 
     Function("isPipActive") { [weak self] () -> Bool in
       self?.pipController?.isPictureInPictureActive ?? false
+    }
+
+    Function("getDeviceStatus") { () -> [String: Any] in
+      let device = UIDevice.current
+      let wasEnabled = device.isBatteryMonitoringEnabled
+      if !wasEnabled {
+        device.isBatteryMonitoringEnabled = true
+      }
+      let batteryLevel = device.batteryLevel
+      let isCharging = device.batteryState == .charging || device.batteryState == .full
+      let thermalState = Self.thermalStateString(ProcessInfo.processInfo.thermalState)
+      if !wasEnabled {
+        device.isBatteryMonitoringEnabled = false
+      }
+      return [
+        "batteryLevel": batteryLevel,
+        "thermalState": thermalState,
+        "isCharging": isCharging
+      ]
+    }
+  }
+
+  // MARK: - Thermal State Helpers
+
+  private static func thermalStateString(_ state: ProcessInfo.ThermalState) -> String {
+    switch state {
+    case .nominal: return "nominal"
+    case .fair: return "fair"
+    case .serious: return "serious"
+    case .critical: return "critical"
+    @unknown default: return "nominal"
+    }
+  }
+
+  // MARK: - Battery Monitoring
+
+  func startBatteryMonitoring() {
+    DispatchQueue.main.async { [weak self] in
+      guard let self = self else { return }
+      UIDevice.current.isBatteryMonitoringEnabled = true
+      self.batteryMonitoringTimer?.invalidate()
+      self.batteryMonitoringTimer = Timer.scheduledTimer(withTimeInterval: 30.0, repeats: true) { [weak self] _ in
+        guard let self = self else { return }
+        let device = UIDevice.current
+        let batteryLevel = device.batteryLevel
+        let isCharging = device.batteryState == .charging || device.batteryState == .full
+        let thermalState = ProcessInfo.processInfo.thermalState
+        let thermalString = Self.thermalStateString(thermalState)
+
+        self.sendEvent("onDeviceStatusChanged", [
+          "batteryLevel": batteryLevel,
+          "thermalState": thermalString,
+          "isCharging": isCharging
+        ])
+
+        if thermalState == .critical {
+          self.sendEvent("onPipStateChanged", [
+            "state": "error",
+            "message": "Device is overheating. Stopping PiP."
+          ])
+          DispatchQueue.main.async {
+            self.pipController?.stopPictureInPicture()
+            self.containerView?.removeFromSuperview()
+            self.containerView = nil
+          }
+          self.stopBatteryMonitoring()
+          self.sessionQueue.async {
+            self.captureSession?.stopRunning()
+            self.captureSession = nil
+          }
+        }
+      }
+    }
+  }
+
+  func stopBatteryMonitoring() {
+    DispatchQueue.main.async { [weak self] in
+      guard let self = self else { return }
+      self.batteryMonitoringTimer?.invalidate()
+      self.batteryMonitoringTimer = nil
+      UIDevice.current.isBatteryMonitoringEnabled = false
     }
   }
 }
