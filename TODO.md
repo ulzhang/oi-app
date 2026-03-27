@@ -13,8 +13,8 @@
 - [x] PiP black bar fix (portrait layer dimensions)
 - [x] Standalone release build (no Metro/WiFi needed)
 
-## Features
-- [ ] **Lock Screen widget** — quick-launch button and "Oi is active" status
+## Features (Shelved)
+- [ ] **Lock Screen widget** — works visually but deep link causes Pegasus errors on re-open. Widget target exists in `targets/widget/`, needs URL handling fix before shipping.
 
 ## App Store Prep
 - [ ] App icon (1024x1024)
