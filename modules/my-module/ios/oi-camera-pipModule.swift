@@ -197,7 +197,7 @@ public class OiCameraPipModule: Module {
 
         // Create the sample buffer display layer
         let layer = AVSampleBufferDisplayLayer()
-        layer.frame = CGRect(x: 0, y: 0, width: 640, height: 480)
+        layer.frame = CGRect(x: 0, y: 0, width: 480, height: 640)
         layer.videoGravity = .resizeAspectFill
         self.delegate.sampleBufferDisplayLayer = layer
 

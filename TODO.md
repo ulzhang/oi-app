@@ -25,3 +25,4 @@
 ## Known Issues
 - [ ] Pegasus/Metro connectivity errors in dev builds (won't affect production)
 - [ ] Onboarding redirect flickers briefly on first completion
+- [ ] **PiP landscape black bar** — PiP window opens in landscape orientation but the video feed has a large black rectangle on the right side, reducing visible camera output. Likely a mismatch between the AVSampleBufferDisplayLayer frame (640x480) and the actual capture resolution/orientation, or a videoGravity/rotation issue.
