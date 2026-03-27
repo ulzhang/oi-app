@@ -6,9 +6,11 @@ import {
   ScrollView,
   Pressable,
   SafeAreaView,
+  Alert,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
+import OiCameraPipModule from '../modules/my-module';
 import { colors, spacing } from '../constants/theme';
 
 const TIMEOUT_KEY = 'autoTimeout';
@@ -58,6 +60,27 @@ export default function SettingsScreen() {
                 )}
               </Pressable>
             ))}
+          </View>
+        </View>
+
+        {/* Siri Shortcuts */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>SIRI</Text>
+          <View style={styles.card}>
+            <Pressable
+              onPress={() => {
+                OiCameraPipModule.donateSiriShortcut();
+                Alert.alert(
+                  'Shortcut Added',
+                  'Say "Hey Siri, Start Oi" to launch PiP hands-free. You can customize the phrase in the Shortcuts app.',
+                  [{ text: 'OK' }]
+                );
+              }}
+              style={styles.optionRow}
+            >
+              <Text style={styles.optionLabel}>Add "Start Oi" to Siri</Text>
+              <Text style={styles.checkmark}>+</Text>
+            </Pressable>
           </View>
         </View>
 

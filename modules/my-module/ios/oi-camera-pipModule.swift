@@ -2,6 +2,7 @@ import ExpoModulesCore
 import AVFoundation
 import AVKit
 import UIKit
+import Intents
 
 // MARK: - Delegate Helper
 
@@ -107,10 +108,34 @@ public class OiCameraPipModule: Module {
   public func definition() -> ModuleDefinition {
     Name("OiCameraPip")
 
-    Events("onPipStateChanged", "onDeviceStatusChanged")
+    Events("onPipStateChanged", "onDeviceStatusChanged", "onSiriShortcutTriggered")
 
     OnCreate {
       self.delegate.module = self
+      NotificationCenter.default.addObserver(
+        forName: NSNotification.Name("OiSiriShortcutTriggered"),
+        object: nil,
+        queue: .main
+      ) { [weak self] _ in
+        self?.sendEvent("onSiriShortcutTriggered", [:])
+      }
+    }
+
+    Function("donateSiriShortcut") {
+      let activity = NSUserActivity(activityType: "com.oi.walkpip.startPiP")
+      activity.title = "Start Oi"
+      activity.suggestedInvocationPhrase = "Start Oi"
+      activity.isEligibleForSearch = true
+      activity.isEligibleForPrediction = true
+      activity.persistentIdentifier = "com.oi.walkpip.startPiP"
+      DispatchQueue.main.async {
+        UIApplication.shared.connectedScenes
+          .compactMap { $0 as? UIWindowScene }
+          .flatMap { $0.windows }
+          .first(where: { $0.isKeyWindow })?
+          .rootViewController?.userActivity = activity
+        activity.becomeCurrent()
+      }
     }
 
     AsyncFunction("startCamera") { (promise: Promise) in

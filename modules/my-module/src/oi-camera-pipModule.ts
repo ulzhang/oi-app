@@ -8,6 +8,7 @@ declare class OiCameraPipModule extends NativeModule<OiCameraPipModuleEvents> {
   stopCamera(): void;
   isPipActive(): boolean;
   getDeviceStatus(): { batteryLevel: number; thermalState: string; isCharging: boolean };
+  donateSiriShortcut(): void;
 }
 
 export default requireNativeModule<OiCameraPipModule>('OiCameraPip');

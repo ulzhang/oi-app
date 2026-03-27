@@ -1,6 +1,7 @@
 {
   "platforms": ["apple"],
   "apple": {
-    "modules": ["OiCameraPipModule"]
+    "modules": ["OiCameraPipModule"],
+    "appDelegateSubscribers": ["OiAppDelegateSubscriber"]
   }
 }

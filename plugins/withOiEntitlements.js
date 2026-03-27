@@ -18,6 +18,14 @@ const withOiEntitlements = (config) => {
       bgModes.push("voip");
     }
     config.modResults.UIBackgroundModes = bgModes;
+
+    // Add NSUserActivityTypes for Siri Shortcuts
+    const activityTypes = config.modResults.NSUserActivityTypes || [];
+    if (!activityTypes.includes("com.oi.walkpip.startPiP")) {
+      activityTypes.push("com.oi.walkpip.startPiP");
+    }
+    config.modResults.NSUserActivityTypes = activityTypes;
+
     return config;
   });
 

@@ -7,11 +7,13 @@
 - [x] Settings screen (auto-timeout, about, privacy)
 - [x] Start/Stop controls with haptic feedback
 - [x] Dark theme UI
+- [x] Battery & thermal monitoring
+- [x] Auto-timeout wired to settings
+- [x] Siri Shortcuts — "Hey Siri, start Oi"
+- [x] PiP black bar fix (portrait layer dimensions)
+- [x] Standalone release build (no Metro/WiFi needed)
 
 ## Features
-- [x] **Battery & thermal monitoring** — battery %, thermal state dot, drain rate, auto-stop on critical thermal
-- [x] **Auto-timeout** — wired up to settings value, countdown display on main screen
-- [ ] **Siri Shortcuts** — "Hey Siri, start Oi" to launch PiP hands-free
 - [ ] **Lock Screen widget** — quick-launch button and "Oi is active" status
 
 ## App Store Prep
@@ -23,6 +25,4 @@
 - [ ] Bundle ID finalization
 
 ## Known Issues
-- [ ] Pegasus/Metro connectivity errors in dev builds (won't affect production)
 - [ ] Onboarding redirect flickers briefly on first completion
-- [ ] **PiP landscape black bar** — PiP window opens in landscape orientation but the video feed has a large black rectangle on the right side, reducing visible camera output. Likely a mismatch between the AVSampleBufferDisplayLayer frame (640x480) and the actual capture resolution/orientation, or a videoGravity/rotation issue.

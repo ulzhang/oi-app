@@ -16,4 +16,5 @@ export type DeviceStatusEvent = {
 export type OiCameraPipModuleEvents = {
   onPipStateChanged: (event: PipStateChangedEvent) => void;
   onDeviceStatusChanged: (event: DeviceStatusEvent) => void;
+  onSiriShortcutTriggered: (event: {}) => void;
 };

@@ -101,7 +101,10 @@ export default function MainScreen() {
           case 'active':
             setAppState('active');
             setStatusMessage('PiP is active — look up!');
+            isStartingRef.current = false;
             startTimer();
+            // Donate Siri shortcut so it appears in Siri Suggestions
+            try { OiCameraPipModule.donateSiriShortcut(); } catch {};
             // Fetch initial device status and record starting battery
             try {
               const status = OiCameraPipModule.getDeviceStatus() as DeviceStatus;
@@ -118,6 +121,7 @@ export default function MainScreen() {
             setDrainText(undefined);
             startBatteryRef.current = null;
             pipStartTimeRef.current = null;
+            isStartingRef.current = false;
             break;
           case 'error':
             setAppState('error');
@@ -151,8 +155,18 @@ export default function MainScreen() {
     };
   }, []);
 
+  const isStartingRef = useRef(false);
+
   const handlePress = useCallback(async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+    // Reset from error state
+    if (appState === 'error') {
+      setAppState('idle');
+      setStatusMessage(undefined);
+      isStartingRef.current = false;
+      return;
+    }
 
     if (appState === 'active') {
       OiCameraPipModule.stopPip();
@@ -164,19 +178,52 @@ export default function MainScreen() {
       setDrainText(undefined);
       startBatteryRef.current = null;
       pipStartTimeRef.current = null;
+      isStartingRef.current = false;
       return;
     }
+
+    // Prevent double-start
+    if (appState !== 'idle' || isStartingRef.current) return;
+    isStartingRef.current = true;
+
+    // Safety timeout: if we're still "starting" after 10s, reset to idle
+    const safetyTimeout = setTimeout(() => {
+      if (isStartingRef.current) {
+        isStartingRef.current = false;
+        OiCameraPipModule.stopPip();
+        OiCameraPipModule.stopCamera();
+        setAppState('idle');
+        setStatusMessage('Timed out. Tap to try again.');
+      }
+    }, 10000);
 
     try {
       setAppState('starting');
       setStatusMessage('Starting camera...');
       await OiCameraPipModule.startCamera();
       await OiCameraPipModule.startPip();
+      clearTimeout(safetyTimeout);
     } catch (error: any) {
+      clearTimeout(safetyTimeout);
       setAppState('error');
       setStatusMessage(error?.message || 'Failed to start camera');
+      isStartingRef.current = false;
     }
   }, [appState, clearTimer]);
+
+  // Listen for Siri shortcut trigger — auto-start PiP
+  useEffect(() => {
+    const subscription = OiCameraPipModule.addListener(
+      'onSiriShortcutTriggered',
+      () => {
+        if (appState === 'idle') {
+          handlePress();
+        }
+      }
+    );
+
+    return () => subscription.remove();
+  }, [appState, handlePress]);
 
   const countdownText =
     remainingSeconds !== null ? formatCountdown(remainingSeconds) : undefined;
