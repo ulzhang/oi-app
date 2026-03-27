@@ -23,8 +23,7 @@
     },
     "plugins": [
       "expo-router",
-      "./plugins/withOiEntitlements",
-      "./plugins/withOiWidget"
+      "./plugins/withOiEntitlements"
     ]
   }
 }
